@@ -178,7 +178,7 @@ def edit(id):#根据博文id找出博文
     form = PostForm()
     if form.validate_on_submit():
         post.title = form.title.data
-        post.category = form.category.data
+        post.category = Category.query.get(form.category.data)
         post.body = form.body.data
         db.session.add(post)
         db.session.commit()
