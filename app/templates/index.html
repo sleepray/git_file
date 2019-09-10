@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>你好,{% if current_user.is_authenticated %} {{ current_user.username }} {% else %}陌生人{% endif %}!</h1>
+</div>
+<div>
+    {% if current_user.can(Permission.WRITE) %}
+    {{ wtf.quick_form(form) }}
+    {% endif %}
+</div>
+<div class="post-tabs">
+    <ul class="nav nav-tabs">
+        {% if current_user.is_anonymous %}
+            <li class="active"><a href="{{ url_for('.index') }}">所有文章 {{ posts_amount }}</a></li>
+        {% elif current_user.is_authenticated %}
+            <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">所有文章 {{ posts_amount[1] }}</a></li>
+            <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_followed') }}">我的关注{{ posts_amount[0] }}</a></li>
+        {% endif %}
+    </ul>
+</div>
+<div class="col-md-9 col-sm-9">
+    <div class="post-tabs">
+        {% include '_post.html' %}
+    </div>
+    {% if pagination %}
+    <div class="pagination">
+            {{ macros.pagination_widget(pagination, '.index') }}
+    </div>
+</div>
+{% endif %}
+<p>当前数据时间是 {{ moment(current_time).format('LLL') }}.</p>
+<!--format('LLL') 根据客户端计算计算机中的时区和区域设置渲染日期和时间-->
+<p>访问在 {{ moment(current_time).fromNow(refresh=True) }}</p>
+<!--fromNow()渲染相对时间戳，例如已经过去几分钟-->
+{% endblock %}
+
+<!--将输入的格式文本渲染成HTML-->
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
