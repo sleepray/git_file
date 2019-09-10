@@ -9,7 +9,7 @@ if os.environ.get('FLASK_COVERAGE'):
 
 import sys,click,threading
 from app import create_app, db
-from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models import User, Follow, Role, Permission, Post, Comment, Category,Like
 from flask_migrate import Migrate, upgrade
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
@@ -19,7 +19,7 @@ migrate = Migrate(app, db)
 
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, User=User, Role=Role,Post=Post,Permission=Permission, Follow=Follow, Comment=Comment)
+    return dict(db=db, User=User, Role=Role,Post=Post,Permission=Permission, Follow=Follow, Comment=Comment,Category=Category,Like=Like)
 
 @app.cli.command()
 @click.option('--coverage/--no-coverage', default=False,
@@ -58,7 +58,7 @@ def profile(length, profile_dir):
                                       profile_dir=profile_dir)
     app.run(debug=False)
 
-@manager.command
+@app.cli.command()
 def deploy():
     '''运行部署任务'''
     #将数据库迁移到最新版
@@ -69,4 +69,13 @@ def deploy():
 
     #确保所有用户都关注了自己
     User.add_self_follows()
+
+    #更新目录分类
+    Category.add_categorys()
+
+    #添加默认标题
+    Post.add_default_title()
+
+    #添加默认分类
+    Post.add_default_category()
 
