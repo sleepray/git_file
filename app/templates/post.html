@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky- 博文{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-9 col-sm-9">
+        {% include '_posts.html' %}
+        <h4 id="comments">评论</h4>
+        {% if current_user.can(Permission.COMMENT) %}
+        <div class="comment-form">
+            {{ wtf.quick_form(form) }}
+        </div>
+        {% endif %}
+        {% include '_comments.html' %}
+        {% if pagination %}
+        <div class="pagination">
+            {{ macros.pagination_widget(pagination, '.post', fragment='#comments', id=posts[0].id)}}
+        </div>
+        {% endif %}
+    </div>
+</div>
+<p>当前数据时间是 {{ moment(current_time).format('LLL') }}.</p>
+<!--format('LLL') 根据客户端计算计算机中的时区和区域设置渲染日期和时间-->
+<p>访问在 {{ moment(current_time).fromNow(refresh=True) }}</p>
+<!--fromNow()渲染相对时间戳，例如已经过去几分钟-->
+{% endblock %}

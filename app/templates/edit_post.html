@@ -1,0 +1,23 @@
+<!--修改博文模板-->
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky -修改博文{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>修改博文</h1>
+</div>
+<div>
+    {{ wtf.quick_form(form) }}
+</div>
+<p>当前数据时间是 {{ moment(current_time).format('LLL') }}.</p>
+<!--format('LLL') 根据客户端计算计算机中的时区和区域设置渲染日期和时间-->
+<p>访问在 {{ moment(current_time).fromNow(refresh=True) }}</p>
+<!--fromNow()渲染相对时间戳，例如已经过去几分钟-->
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
