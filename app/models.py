@@ -107,6 +107,7 @@ class User(UserMixin,db.Model):
     avatar_hash = db.Column(db.String(32))#MD5散列值
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')#博文
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    likes = db.relationship('Like', backref = 'author', lazy = 'dynamic')
     #关注的人
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
@@ -270,6 +271,11 @@ class User(UserMixin,db.Model):
         return self.followers.filter_by(
             follower_id=user.id).first() is not None
 
+    def is_like_post(self, post):
+        if post.id is None:
+            return False
+        return self.likes.filter_by(post_id = post.id).first() is not None#判断自己有没有点赞，有就返回True
+
     #生成api登录令牌
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
@@ -325,11 +331,14 @@ def load_user(user_id):
 class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.Unicode(128))
     body = db.Column(db.Text)#正文
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)#时间戳
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))#外键
     body_html = db.Column(db.Text)
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    likes = db.relationship('Like', backref = 'post', lazy = 'dynamic')
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -358,6 +367,13 @@ class Post(db.Model):
         }
         return json_post
 
+    def delete(self):
+        comments = self.comments
+        for comment in comments:
+            db.session.delete(comment)
+        db.session.delete(self)
+        db.session.commit()
+
     #只允许客户端提交body属性
     @staticmethod
     def from_json(json_post):
@@ -365,6 +381,22 @@ class Post(db.Model):
         if body is None or body == '':
             raise ValidationError('博文没有正文')
         return Post(body=body)
+
+    @staticmethod
+    def add_default_title():
+        for post in Post.query.all():
+            if not post.title:
+                post.title = '默认标题'
+                db.session.add(post)
+                db.session.commit()
+
+    @staticmethod
+    def add_default_category():
+        for post in Post.query.all():
+            if not post.category:
+                post.category = Category.query.filter_by(category = '默认分类').first()
+                db.session.add(post)
+                db.session.commit()
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
 #将 on_changed_body() 注册为 body 字段的 SQLAlchemy set 事件的监听器
@@ -409,3 +441,34 @@ class Comment(db.Model):
         return Comment(body=body)
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+
+#博文分类
+class Category(db.Model):
+    __tablename__ = 'category'
+    id = db.Column(db.Integer, primary_key = True)
+    category = db.Column(db.Unicode(128), unique = True)
+    posts = db.relationship('Post', backref = 'category', lazy = 'dynamic')
+
+    @staticmethod
+    def add_categorys():
+        categorys = [
+            '博客开发',
+            '生活点滴',
+            '默认分类'
+        ]
+        for c in categorys:
+            category = Category.query.filter_by(category = c).first()
+            if category is None:
+                category = Category(category = c)
+            db.session.add(category)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<Category %r>' % self.category
+
+class Like(db.Model):
+    __tablename__ = 'like'
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, index=True, default= datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
