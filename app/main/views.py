@@ -111,7 +111,8 @@ def edit_profile_admin(id):
     form.confirmed.data = user.confirmed
     form.role.data = user.role_id
     form.name.data = user.name
-    form.location.data = user.about_me
+    form.location.data = user.location
+    form.about_me.data = user.about_me
     return render_template('edit_profile.html', form=form, user=user, current_time=datetime.utcnow())
 
 #文章固定链接
