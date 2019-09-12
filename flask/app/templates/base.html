@@ -1,0 +1,73 @@
+{% extends "bootstrap/base.html" %}
+<!--extends声明这个模板继承boostrap的base.html-->
+
+{% block title %}Flasky{% endblock %}
+
+
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="nacbar-header">
+            <button type="button" class="navbar-toggle"
+             data-toggle="collapse" data-target="。navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">首页</a></li>
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('main.user', username=current_user.username) }}">个人主页</a> </li>
+                {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.can(Permission.MODERATE) %}
+                <li><a href="{{ url_for('main.moderate') }}">审核评论</a> </li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <!--dropdown下拉,dropdown-menu菜单-->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <!--修饰下拉菜单，为头像加用户名-->
+                        <img src=" {{ current_user.gravatar(size=18) }}"> {{ current_user.username }} <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <!--current_user自动设置已登录用户，如果用户登录有效，则渲染注销页面，否则渲染登录界面-->
+                        <li><a href="{{ url_for('auth.change_password')}}">修改密码</a> </li>
+                        <li><a href="{{ url_for('auth.change_email_request')}}">修改邮箱</a> </li>
+                        <li><a href="{{ url_for('auth.logout') }}">注销</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li><a href="{{ url_for('auth.register') }}">注册</a> </li>
+                <li><a href="{{ url_for('auth.login') }}">登录</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<!--渲染闪现消息-->
+<div class="container">
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+    </div>
+    {% endfor %}
+
+    {% block page_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{{ moment.locale('zh-cn')}}
+{% endblock %}

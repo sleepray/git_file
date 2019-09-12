@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky - 登录{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>登录</h1>
+</div>
+<div class="col-md-4">
+    <!--使用wtf.quick_form渲染登陆表单-->
+    {{ wtf.quick_form(form) }}
+    <br>
+    <p>新用户？</p>
+    <p><a href="{{ url_for('auth.register') }}">点击这里进行注册</a></p>
+    <p>忘记密码？</p>
+    <p><a href="{{ url_for('auth.password_reset_request') }}">点击这里重置</a> </p>
+</div>
+<p>当前数据时间是 {{ moment(current_time).format('LLL') }}.</p>
+<!--format('LLL') 根据客户端计算计算机中的时区和区域设置渲染日期和时间-->
+<p>访问在 {{ moment(current_time).fromNow(refresh=True) }}</p>
+<!--fromNow()渲染相对时间戳，例如已经过去几分钟-->
+{% endblock %}
