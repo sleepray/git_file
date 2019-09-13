@@ -344,9 +344,14 @@ class Post(db.Model):
     def on_changed_body(target, value, oldvalue, initiator):
         allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
                         'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
-                        'h1', 'h2', 'h3', 'p']
+                        'h1', 'h2', 'h3', 'p', 'img']
+        attrs = {
+            '*': ['class'],
+            'a': ['href', 'rel'],
+            'img': ['src', 'alt']
+        }
         target.body_html = bleach.linkify(bleach.clean(
-            markdown(value, output_format='html'),
+            markdown(value, output_format='html'),attributes=attrs,
             tags=allowed_tags, strip=True))
 
     ##Markdown()文本到HTML转换分三步完成：
@@ -371,6 +376,9 @@ class Post(db.Model):
         comments = self.comments
         for comment in comments:
             db.session.delete(comment)
+        likes = self.likes
+        for like in likes:
+            db.session.delete(like)
         db.session.delete(self)
         db.session.commit()
 
