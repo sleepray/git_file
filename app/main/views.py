@@ -168,7 +168,7 @@ def post_like(id, redir):
     elif redir == '.category':
         return redirect(url_for('.category', page=page, id=post.category.id, _anchor=redir_frament))
     elif redir == '.user':
-        return redirect(url_for('.user', username = current_user._get_current_object().username, _anchor=redirect_frament))
+        return redirect(url_for('.user', username = current_user._get_current_object().username, _anchor=redir_frament))
 
 @main.route('/edit/<int:id>', methods=['GET','POST'])
 @login_required
