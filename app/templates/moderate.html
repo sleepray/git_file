@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky- 审核评论{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>审核评论</h1>
+</div>
+<!--set moderate=True 通知 _comments.html，将评论列表渲染为审核模式-->
+{% set moderate = True %}
+{% include '_comments.html' %}
+{% if pagination %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.moderate') }}
+</div>
+{% endif %}
+<p>当前数据时间是 {{ moment(current_time).format('LLL') }}.</p>
+<!--format('LLL') 根据客户端计算计算机中的时区和区域设置渲染日期和时间-->
+<p>访问在 {{ moment(current_time).fromNow(refresh=True) }}</p>
+<!--fromNow()渲染相对时间戳，例如已经过去几分钟-->
+{% endblock %}
